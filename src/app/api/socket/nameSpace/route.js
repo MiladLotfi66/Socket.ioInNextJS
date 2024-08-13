@@ -1,6 +1,6 @@
 // src/app/api/socket/nameSpace/route.js
 import connectDB from '@/utils/connectDb';
-import NameSpace from "@/models/Chat";
+import NameSpace from "../../../../../models/Chat";
 
 export async function GET(request) {
   await connectDB();

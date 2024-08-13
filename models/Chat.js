@@ -1,4 +1,5 @@
-import { Schema, model, models } from "mongoose";
+import pkg from "mongoose";
+const { Schema, model, models } = pkg;
 
 // ابتدا MessageSchema را تعریف می‌کنیم
 const MessageSchema = new Schema({
