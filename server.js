@@ -2,7 +2,7 @@
 import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
-import NameSpaceSocket from "./Socket.io/NameSpaceSocket.js";
+import indexSocket from "./Socket.io/indexSocket.js";
 
 console.log("WebSocket server is runned....>");
 
@@ -43,7 +43,7 @@ app.prepare().then(() => {
 
   // Initializing WebSocket Server
   const io = InitializeSocket(httpServer); // استفاده از کامپوننت
-  NameSpaceSocket(io)
+  indexSocket(io)
   httpServer.once("error", (err) => {
     console.error(err);
     process.exit(1);

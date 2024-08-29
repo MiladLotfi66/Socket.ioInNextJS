@@ -1,7 +1,7 @@
 import NameSpace from "../models/Chat.js";
 import connectDB from "../src/utils/connectDb.js";
 
-function NameSpaceSocket(io) {
+function InitConnection(io) {
 io.on("connection",async(socket)=>{
   console.log("socket--->",socket.id);
   await connectDB()
@@ -9,5 +9,22 @@ io.on("connection",async(socket)=>{
   socket.emit("namespaces",namespaces)
 })
 }
+async function NameSpaceRooms (io,selectedNameSpace) {
+  
+  await connectDB()
+  
+  const namespaces= await NameSpace.find({}).lean();
+  
+  namespaces.forEach((namespace)=>{
 
-export default NameSpaceSocket
+  
+  io.of(namespace.href).on("connection",async (socket)=>{
+
+    socket.emit("nameSpaceRooms",namespace.rooms)
+    console.log("namespace.rooms---->",namespace.rooms);
+  })
+
+})
+}
+
+export  {InitConnection,NameSpaceRooms}
