@@ -19,9 +19,16 @@ async function NameSpaceRooms (io,selectedNameSpace) {
 
   
   io.of(namespace.href).on("connection",async (socket)=>{
-
     socket.emit("nameSpaceRooms",namespace.rooms)
-    console.log("namespace.rooms---->",namespace.rooms);
+
+socket.on("joining", async (newRoom)=>{
+console.log("room-->",newRoom);
+socket.join(newRoom)
+console.log("room-->",newRoom);
+
+})
+
+
   })
 
 })

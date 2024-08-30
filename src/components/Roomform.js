@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react";
 import io from "socket.io-client";
 
+
+
+
 let socket;
 
 function RoomForm() {
@@ -11,6 +14,7 @@ function RoomForm() {
     const [error, setError] = useState("");
     const [namespaces, setNamespaces] = useState([]);
     const [selectedNamespace, setSelectedNamespace] = useState(null);
+    const [selectedRoom, setSelectedRoom] = useState(null);
     const [rooms, setRooms] = useState([]);
 
     useEffect(() => {
@@ -48,6 +52,7 @@ function RoomForm() {
                 console.log("Rooms ->", rooms);
                 setRooms(rooms); // Assuming 'rooms' is the array of rooms received
             });
+          
 
             return () => {
                 if (namespaceSocket) {
@@ -56,9 +61,26 @@ function RoomForm() {
             };
         }
     }, [selectedNamespace]);
+    useEffect(() => {
+        let namespaceSocket;
+        if (selectedRoom){
+            namespaceSocket = io(`http://localhost:3000${selectedNamespace}`);
+
+            console.log("join to room ",selectedRoom);
+            namespaceSocket.emit("joining", selectedRoom);
+        }
+     
+    }, [selectedRoom]);
+    // useEffect(()=>{
+    //   socket.join(selectedRoom)  
+    // },[selectedRoom])
 
     const handleNamespaceClick = (namespace) => {
         setSelectedNamespace(namespace.href);
+    };
+      const handleRoomClick = ( room) => {
+        // console.log(room._id);
+        setSelectedRoom(room._id);
     };
 
     const handleSubmit = async (e) => {
@@ -125,8 +147,19 @@ function RoomForm() {
                     <h3>Rooms in {selectedNamespace}:</h3>
                     <ul>
                         {rooms.map((room) => (
-                            <li key={room._id}>{room.title}</li>
+                            <li key={room._id} onClick={() => handleRoomClick(room)} style={{ cursor: "pointer" }}>
+                                {room.title}
+                                
+                            </li>
                         ))}
+                    </ul>
+                </>
+            )}
+              {selectedRoom && (
+                <>
+                    <h3>content in {selectedRoom}:</h3>
+                    <ul>
+                      room is connected
                     </ul>
                 </>
             )}
