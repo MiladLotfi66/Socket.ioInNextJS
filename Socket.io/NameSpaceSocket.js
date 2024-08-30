@@ -22,9 +22,10 @@ async function NameSpaceRooms (io,selectedNameSpace) {
     socket.emit("nameSpaceRooms",namespace.rooms)
 
 socket.on("joining", async (newRoom)=>{
-console.log("room-->",newRoom);
+  
+console.log("room-->",socket.rooms);
 socket.join(newRoom)
-console.log("room-->",newRoom);
+console.log("room-->",socket.rooms);
 
 })
 

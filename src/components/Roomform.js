@@ -1,9 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
-
-
-
 
 let socket;
 
@@ -16,6 +13,9 @@ function RoomForm() {
     const [selectedNamespace, setSelectedNamespace] = useState(null);
     const [selectedRoom, setSelectedRoom] = useState(null);
     const [rooms, setRooms] = useState([]);
+    
+    // استفاده از useRef برای نگهداری namespaceSocket
+    const namespaceSocketRef = useRef(null);
 
     useEffect(() => {
         // Connect to Socket.IO server
@@ -38,49 +38,47 @@ function RoomForm() {
     }, []);
 
     useEffect(() => {
-        let namespaceSocket;
         if (selectedNamespace) {
-            namespaceSocket = io(`http://localhost:3000${selectedNamespace}`);
+            // Disconnect previous namespaceSocket if it exists
+            if (namespaceSocketRef.current) {
+                namespaceSocketRef.current.disconnect();
+            }
+
+            // Connect to selected namespace
+            namespaceSocketRef.current = io(`http://localhost:3000${selectedNamespace}`);
             console.log("Connecting to namespace:", selectedNamespace);
 
-            namespaceSocket.on("connect", () => {
-                console.log(`Connected to namespace: ${selectedNamespace} with socket ID: ${namespaceSocket.id}`);
+            namespaceSocketRef.current.on("connect", () => {
+                console.log(`Connected to namespace: ${selectedNamespace} with socket ID: ${namespaceSocketRef.current.id}`);
             });
 
-            namespaceSocket.on("nameSpaceRooms", (rooms) => {
-                console.log("Rooms received from namespace:");
-                console.log("Rooms ->", rooms);
-                setRooms(rooms); // Assuming 'rooms' is the array of rooms received
+            namespaceSocketRef.current.on("nameSpaceRooms", (rooms) => {
+              console.log("Rooms received from namespace:");
+              console.log("Rooms ->", rooms);
+              setRooms(rooms); // Assuming 'rooms' is the array of rooms received
             });
-          
 
             return () => {
-                if (namespaceSocket) {
-                    namespaceSocket.disconnect();
-                }
-            };
+              if (namespaceSocketRef.current) {
+                namespaceSocketRef.current.disconnect();
+            }
+          };
         }
     }, [selectedNamespace]);
-    useEffect(() => {
-        let namespaceSocket;
-        if (selectedRoom){
-            namespaceSocket = io(`http://localhost:3000${selectedNamespace}`);
 
-            console.log("join to room ",selectedRoom);
-            namespaceSocket.emit("joining", selectedRoom);
+    useEffect(() => {
+        if (selectedRoom && namespaceSocketRef.current) {
+            console.log("join to room ", selectedRoom);
+            namespaceSocketRef.current.emit("joining", selectedRoom);
         }
-     
     }, [selectedRoom]);
-    // useEffect(()=>{
-    //   socket.join(selectedRoom)  
-    // },[selectedRoom])
 
     const handleNamespaceClick = (namespace) => {
         setSelectedNamespace(namespace.href);
     };
-      const handleRoomClick = ( room) => {
-        // console.log(room._id);
-        setSelectedRoom(room._id);
+    
+    const handleRoomClick = (room) => {
+        setSelectedRoom(room.title);
     };
 
     const handleSubmit = async (e) => {
