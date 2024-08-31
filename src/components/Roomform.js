@@ -68,10 +68,26 @@ function RoomForm() {
 
     useEffect(() => {
         if (selectedRoom && namespaceSocketRef.current) {
-            console.log("join to room ", selectedRoom);
+            console.log("join to room ..", selectedRoom);
             namespaceSocketRef.current.emit("joining", selectedRoom);
+    
+            // حذف event listener قبلی
+            namespaceSocketRef.current.off("roomInfo");
+    
+            // اضافه کردن event listener جدید
+            namespaceSocketRef.current.on("roomInfo", (roomInfo) => {
+                console.log("roomInfo", roomInfo);
+            });
         }
     }, [selectedRoom]);
+    // useEffect(() => {
+    //     if (selectedRoom && namespaceSocketRef.current) {
+    //         console.log("join to room ..", selectedRoom);
+    //         namespaceSocketRef.current.emit("joining", selectedRoom);
+    //         namespaceSocketRef.current.on("roomInfo",(roomInfo)=>{console.log("roomInfo",roomInfo)})
+
+    //     }
+    // }, [selectedRoom]);
 
     const handleNamespaceClick = (namespace) => {
         setSelectedNamespace(namespace.href);
