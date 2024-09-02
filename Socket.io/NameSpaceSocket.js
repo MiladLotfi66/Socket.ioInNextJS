@@ -28,9 +28,10 @@ socket.on("joining", async (newRoom)=>{
     socket.leave(lastJoin)
   }
 socket.join(newRoom)
+console.log("join()",newRoom);
 
 
-const roomInfo =await mainNameSpaces.rooms.find((room) => room.title = newRoom)
+const roomInfo =await mainNameSpaces.rooms.find((room) => room.title === newRoom)
 console.log("roomInfo----->",roomInfo);
 
 socket.emit("roomInfo",roomInfo)
