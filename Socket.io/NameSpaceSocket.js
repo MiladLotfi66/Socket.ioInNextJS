@@ -26,16 +26,21 @@ socket.on("joining", async (newRoom)=>{
   const lastJoin=Array.from(socket.rooms)[1]
   if (lastJoin) {
     socket.leave(lastJoin)
+    await getRoomOnlineUsers(io,lastJoin,namespace.href)
+
   }
 socket.join(newRoom)
-console.log("join()",newRoom);
 
+await getRoomOnlineUsers(io,newRoom,namespace.href)
 
 const roomInfo =await mainNameSpaces.rooms.find((room) => room.title === newRoom)
-console.log("roomInfo----->",roomInfo);
 
 socket.emit("roomInfo",roomInfo)
 
+socket.on("disconnect",async ()=>{
+  await getRoomOnlineUsers(io,newRoom,namespace.href)
+
+})
 
 
 })
@@ -43,6 +48,12 @@ socket.emit("roomInfo",roomInfo)
   })
 
 })
+}
+
+const getRoomOnlineUsers= async (io , roomTitle , href)=>{
+const onLineUsers=await io.of(href).in(roomTitle).allSockets()
+
+io.of(href).in(roomTitle).emit("onlineUserCount",Array.from(onLineUsers).length)
 }
 
 export  {InitConnection,NameSpaceRooms}

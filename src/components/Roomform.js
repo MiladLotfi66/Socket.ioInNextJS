@@ -14,6 +14,9 @@ function RoomForm() {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [rooms, setRooms] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [onlineUserCount, setOnlineUserCount] = useState(0); // State جدید برای تعداد کاربران آنلاین
+
+
 
   // استفاده از useRef برای نگهداری namespaceSocket
   const namespaceSocketRef = useRef(null);
@@ -56,6 +59,10 @@ function RoomForm() {
         setRooms(rooms); // فرض می‌کنیم 'rooms' یک آرایه از روم‌ها باشد
       });
 
+      namespaceSocketRef.current.on("onlineUserCount", (count) => {
+        setOnlineUserCount(count); // دریافت و تنظیم تعداد کاربران آنلاین
+      });
+
       return () => {
         if (namespaceSocketRef.current) {
           namespaceSocketRef.current.disconnect();
@@ -79,6 +86,13 @@ function RoomForm() {
         );
         setMessages(formattedMessages);
       });
+
+        // افزودن event listener برای تعداد کاربران آنلاین هنگام انتخاب یک اتاق
+        namespaceSocketRef.current.on("onlineUserCount", (count) => {
+            setOnlineUserCount(count); // دریافت و تنظیم تعداد کاربران آنلاین
+          });
+
+
     }
   }, [selectedRoom]);
 
@@ -172,6 +186,8 @@ function RoomForm() {
       {selectedRoom && (
         <>
           <h3>Messages in {selectedRoom}:</h3>
+          <h4>  کاربران آنلاین: {onlineUserCount}</h4> {/* نمایش تعداد کاربران آنلاین */}
+
           <ul>
             {messages.map((msg, index) => (
               <li key={index}>{msg}</li>
