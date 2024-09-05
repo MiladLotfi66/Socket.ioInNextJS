@@ -14,20 +14,15 @@ function RoomForm() {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [rooms, setRooms] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [onlineUserCount, setOnlineUserCount] = useState(0); // State جدید برای تعداد کاربران آنلاین
+  const [onlineUserCount, setOnlineUserCount] = useState(0);
+  const [newMessage, setNewMessage] = useState("");
 
-
-
-  // استفاده از useRef برای نگهداری namespaceSocket
   const namespaceSocketRef = useRef(null);
 
   useEffect(() => {
-    // اتصال به سرور Socket.IO
     socket = io();
-    socket.on("connect", () => {
-    });
+    socket.on("connect", () => {});
 
-    // گوش دادن برای دریافت namespaces
     socket.on("namespaces", (data) => {
       setNamespaces(data);
     });
@@ -41,26 +36,27 @@ function RoomForm() {
 
   useEffect(() => {
     if (selectedNamespace) {
-      // قطع ارتباط قبلی با namespaceSocket
       if (namespaceSocketRef.current) {
         namespaceSocketRef.current.disconnect();
       }
 
-      // اتصال به namespace انتخاب شده
       namespaceSocketRef.current = io(
         `http://localhost:3000${selectedNamespace}`
       );
 
-      namespaceSocketRef.current.on("connect", () => {
-      
-      });
+      namespaceSocketRef.current.on("connect", () => {});
 
       namespaceSocketRef.current.on("nameSpaceRooms", (rooms) => {
-        setRooms(rooms); // فرض می‌کنیم 'rooms' یک آرایه از روم‌ها باشد
+        setRooms(rooms);
       });
 
       namespaceSocketRef.current.on("onlineUserCount", (count) => {
-        setOnlineUserCount(count); // دریافت و تنظیم تعداد کاربران آنلاین
+        setOnlineUserCount(count);
+      });
+
+      // گوش دادن به پیام‌های جدید
+      namespaceSocketRef.current.on("newMessage", (message) => {
+        setMessages((prevMessages) => [...prevMessages, message]);
       });
 
       return () => {
@@ -75,24 +71,15 @@ function RoomForm() {
     if (selectedRoom && namespaceSocketRef.current) {
       namespaceSocketRef.current.emit("joining", selectedRoom);
 
-      // حذف event listener قبلی
       namespaceSocketRef.current.off("roomInfo");
 
-      // اضافه کردن event listener جدید
       namespaceSocketRef.current.on("roomInfo", (roomInfo) => {
-        
-        const formattedMessages = roomInfo.messages.map(msg =>
-          Object.values(msg).slice(0, -1).join("")
-        );
-        setMessages(formattedMessages);
+        setMessages(roomInfo.messages);
       });
 
-        // افزودن event listener برای تعداد کاربران آنلاین هنگام انتخاب یک اتاق
-        namespaceSocketRef.current.on("onlineUserCount", (count) => {
-            setOnlineUserCount(count); // دریافت و تنظیم تعداد کاربران آنلاین
-          });
-
-
+      namespaceSocketRef.current.on("onlineUserCount", (count) => {
+        setOnlineUserCount(count);
+      });
     }
   }, [selectedRoom]);
 
@@ -102,6 +89,13 @@ function RoomForm() {
 
   const handleRoomClick = (room) => {
     setSelectedRoom(room.title);
+  };
+
+  const handleSendMessage = () => {
+    if (newMessage.trim() && namespaceSocketRef.current && selectedRoom) {
+      namespaceSocketRef.current.emit("newMessage", { room: selectedRoom, message: newMessage });
+      setNewMessage("");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -186,13 +180,22 @@ function RoomForm() {
       {selectedRoom && (
         <>
           <h3>Messages in {selectedRoom}:</h3>
-          <h4>  کاربران آنلاین: {onlineUserCount}</h4> {/* نمایش تعداد کاربران آنلاین */}
+          <h4>کاربران آنلاین: {onlineUserCount}</h4> 
 
           <ul>
             {messages.map((msg, index) => (
-              <li key={index}>{msg}</li>
+              <li key={index}>{msg.message}</li>
             ))}
           </ul>
+          <div>
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="پیام جدید"
+            />
+            <button onClick={handleSendMessage}>ارسال</button>
+          </div>
         </>
       )}
     </>
